@@ -39,6 +39,6 @@ def colorhash(image):
 
 
 if __name__ == "__main__":
-    image = cv2.imread("D:\Code\python\imgRetrieval\sample\gura.png")
+    image = cv2.imread(".\sample\gura.png")
     hash = colorhash(image)
     print(hash)

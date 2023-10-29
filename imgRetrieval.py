@@ -7,15 +7,15 @@ import csv
 import msvcrt
 import os
 
-_title='以圖搜圖小程式？　Ｖ０．３．３　'
-_menu=[
+TITLE='以圖搜圖小程式？　Ｖ０．４．０　'
+MENU=[
     '０）Ｅ　Ｘ　Ｉ　Ｔ',
     '１）執行－以圖搜圖',
     '２）建立－資料索引',
 ]
-_order=[1,2,0]
-_graphlength=20
-_hashsize=8
+ORDER=[1,2,0]
+GRAPH_LENGTH=20
+HASH_SIZE=8
 
 def imgRetrieval():
     while 1:
@@ -34,7 +34,20 @@ def imgRetrieval():
             HashList=Img2Hash(path)
             if HashList: 
                 InfoPrint(f'正在搜尋圖片\n','處理中')
-                CountDiff(HashList)
+                ans=CountDiff(HashList)
+                if(ans[1]>0.8):
+                    InfoPrint(f'\n最相似的圖片為 "{ans[0]}" 。\n'
+                            +f'相似度為 "{ans[1]*100}%" 。\n','完成')
+                else:
+                    InfoPrint(f'找不到相似圖片。\n\n','失敗')
+                    _yn=input('請問是否需要建立索引？（Ｙ／Ｎ）：')
+                    if _yn=="Y":
+                        pass
+                    if _yn=="N":
+                        pass
+                    else:
+                        InfoPrint(f'請輸入有效的數字!!!\n',type='警告')
+                Wait4Key()
             else: 
                 next
 
@@ -60,22 +73,23 @@ def indexCreate():
 
 def CountDiff(HashList):
     data=ReadCSV()
+    ans=["",0]
     for x in data:
-        CosSimilarity(HashList[0],x[1])
+        temp=CosSimilarity(HashList[0],x[1])
+        if ans[1]<temp:ans=[x[0],CosSimilarity(HashList[0],x[1])]
+    return ans
 
 def CosSimilarity(vector_a,vector_b):
     # 定義兩個向量
-    #v_a = np.array(vector_a)
-    #v_b = np.array(vector_b)
-    print(vector_a,vector_b)
-    v_a = int(str(vector_a),16)
-    v_b = int(str(vector_b),16)
-
-
+    v_a = np.array(vector_a.hash)
+    v_a=v_a.flatten().astype('int')
+    v_b = np.array(iHash.hex_to_hash(vector_b).hash)
+    v_b=v_b.flatten().astype('int')
+    
     # 計算餘弦相似度
-    cosine_similarity = np.dot(v_a, v_b) / (np.linalg.norm(v_a) * np.linalg.norm(v_b))
+    cosine_similarity = np.dot(v_a,v_b) / (norm(v_a)*norm(v_b))
 
-    InfoPrint(cosine_similarity,"相似度")
+    #InfoPrint(cosine_similarity,"相似度")
     return cosine_similarity
 
 def ReadCSV(path='./db/index.csv'):
@@ -124,10 +138,10 @@ def Img2Hash(path):
     img=cv2.imread(path)
     img=Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     HashList=[
-        iHash.average_hash(img,_hashsize),
-        iHash.phash(img,_hashsize),
-        iHash.dhash(img,_hashsize),
-        iHash.whash(img,_hashsize),
+        iHash.average_hash(img,HASH_SIZE),
+        iHash.phash(img,HASH_SIZE),
+        iHash.dhash(img,HASH_SIZE),
+        iHash.whash(img,HASH_SIZE),
         #iHash.colorhash(img),#colorhash先暫時不用
         iHash.crop_resistant_hash(img),#colorhash儲存但暫不計算
     ]
@@ -138,10 +152,10 @@ def Img2Hash(path):
 def InfoPrint(text='',type='通知'):
     print(f'{type}：{text}')
 
-def TitlePrint(text='',edge='＊',cont='　',size=_graphlength):
+def TitlePrint(text='',edge='＊',cont='　',size=GRAPH_LENGTH):
     print(edge+cont*(size-len(text)//2)+text+cont*(size-len(text)//2)+edge)
 
-def Title(text='',edge='＊',cont='　',size=_graphlength):
+def Title(text='',edge='＊',cont='　',size=GRAPH_LENGTH):
     TitlePrint(cont='＊')
     TitlePrint()
     TitlePrint(text,edge=edge,cont=cont,size=size)
@@ -164,29 +178,30 @@ def Full2Half(str):
 def Wait4Key():
     print('！　請　按　任　意　鍵　繼　續　！')
     msvcrt.getch()
+    Reflash()
 
 def Reflash():
     os.system('cls')
 
 def main():
     while(1):
-        Title(_title)
+        Title(TITLE)
         TitlePrint('！請輸入數字以決定需要的功能！',edge='　')
         TitlePrint(edge='＝',cont='＝')
-        for i in _order:
-            TitlePrint(_menu[i],edge='　')
+        for i in ORDER:
+            TitlePrint(MENU[i],edge='　')
         TitlePrint(edge='＝',cont='＝')
         print()
         select=Full2Half(input("請選擇："))
         print()
-        if select.isdigit() and int(select) in _order:
+        if select.isdigit() and int(select) in ORDER:
             if select=='1':
                 Reflash()
-                InfoPrint(f'你選擇了 {_menu[int(select)]}\n')
+                InfoPrint(f'你選擇了 {MENU[int(select)]}\n')
                 imgRetrieval()
             elif select=='2':
                 Reflash()
-                InfoPrint(f'你選擇了 {_menu[int(select)]}\n')
+                InfoPrint(f'你選擇了 {MENU[int(select)]}\n')
                 indexCreate()
             else:
                 Reflash()
