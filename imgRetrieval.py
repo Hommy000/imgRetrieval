@@ -7,7 +7,7 @@ import csv
 import msvcrt
 import os
 
-TITLE = '以圖搜圖小程式？　Ｖ０．５．０　'
+TITLE = '以圖搜圖小程式？　Ｖ０．５．１　'
 MENU = [
     '０）Ｅ　Ｘ　Ｉ　Ｔ',
     '１）執行－以圖搜圖',
@@ -47,12 +47,13 @@ def imgRetrieval():
                 else:
                     InfoPrint(f'找不到相似圖片。\n\n', '失敗')
                     _yn = input('請問是否需要建立索引？（Ｙ／Ｎ）：')
+                    _yn = Full2Half(_yn).upper()
                     if _yn == "Y":
-                        pass
-                    if _yn == "N":
+                        WriteCSV(HashList)
+                    elif _yn == "N":
                         pass
                     else:
-                        InfoPrint(f'請輸入有效的數字!!!\n', type='警告')
+                        InfoPrint(f'請輸入有效的文字!!!\n', type='警告')
                 Wait4Key()
             else:
                 next
@@ -90,15 +91,14 @@ def CountDiff(HashList):
 
 
 def CosSimilarity(vector_a, vector_b):
-    # 定義兩個向量
-    v_a = str(vector_a[0])+str(vector_a[1])+str(vector_a[2])+str(vector_a[3])
-    v_a = np.array(iHash.hex_to_hash(v_a).hash)
-    v_a = v_a.flatten().astype('int')
-    v_b = str(vector_b[0])+str(vector_b[1])+str(vector_b[2])+str(vector_b[3])
-    v_b = np.array(iHash.hex_to_hash(v_b).hash)
-    v_b = v_b.flatten().astype('int')
+    v_a = ""
+    v_b = ""
+    for _va, _vb in zip(vector_a, vector_b):
+        v_a += str(_va)
+        v_b += str(_vb)
+    v_a = np.array(iHash.hex_to_hash(v_a).hash).flatten().astype('int')
+    v_b = np.array(iHash.hex_to_hash(v_b).hash).flatten().astype('int')
 
-    # 計算餘弦相似度
     cosine_similarity = np.dot(v_a, v_b) / (norm(v_a)*norm(v_b))
 
     # InfoPrint(cosine_similarity,"相似度")
@@ -120,12 +120,17 @@ def ReadCSV(path='./db/index.csv'):
     return data
 
 
-def WriteCSV(HashList, path='./db/index.csv'):
+def WriteCSV(HashList, path='./db/index.csv', auto=False):
     with open(path, "a") as f:
         InfoPrint(f'正在建立索引表\n', '處理中')
         while 1:
-            name = input('請命名：')
-            name += GetExt(_TempPath)
+            name = ""
+            if not auto:
+                name = input('請命名：')
+            if name != "":
+                name += GetExt(_TempPath)
+            else:
+                name = GetFilename(_TempPath)
             if not FileExist(f'./db/img/{name}', 0):
                 break
             InfoPrint(f'檔案 "{name}" 已存在！', "錯誤")
