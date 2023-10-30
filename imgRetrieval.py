@@ -7,7 +7,7 @@ import csv
 import msvcrt
 import os
 
-TITLE = '以圖搜圖小程式？　Ｖ０．５．１　'
+TITLE = '以圖搜圖小程式？　Ｖ０．５．２　'
 MENU = [
     '０）Ｅ　Ｘ　Ｉ　Ｔ',
     '１）執行－以圖搜圖',
@@ -16,6 +16,7 @@ MENU = [
 ORDER = [1, 2, 0]
 GRAPH_LENGTH = 20
 HASH_SIZE = 8
+THRESHOLD=0.75
 
 
 def imgRetrieval():
@@ -36,7 +37,7 @@ def imgRetrieval():
             if HashList:
                 InfoPrint(f'正在搜尋圖片\n', '處理中')
                 ans = CountDiff(HashList)
-                if (ans[1] > 0.8):
+                if (ans[1] > THRESHOLD):
                     InfoPrint(f'\n與 {GetFilename(_TempPath)} 最相似的圖片為 "{ans[0]}" 。\n'
                               + f'相似度為 "{ans[1]*100}%" 。\n', '完成')
                     OpenImg(_TempPath)
@@ -93,9 +94,13 @@ def CountDiff(HashList):
 def CosSimilarity(vector_a, vector_b):
     v_a = ""
     v_b = ""
-    for _va, _vb in zip(vector_a, vector_b):
-        v_a += str(_va)
-        v_b += str(_vb)
+    if not isinstance(vector_a, list):
+        v_a += str(vector_a)
+        v_b += str(vector_b)
+    else:
+        for _va, _vb in zip(vector_a, vector_b):
+            v_a += str(_va)
+            v_b += str(_vb)
     v_a = np.array(iHash.hex_to_hash(v_a).hash).flatten().astype('int')
     v_b = np.array(iHash.hex_to_hash(v_b).hash).flatten().astype('int')
 
