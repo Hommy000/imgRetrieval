@@ -7,7 +7,7 @@ import csv
 import msvcrt
 import os
 
-TITLE = '以圖搜圖小程式？　Ｖ０．５．２　'
+TITLE = '以圖搜圖小程式？　Ｖ０．６．０　'
 MENU = [
     '０）Ｅ　Ｘ　Ｉ　Ｔ',
     '１）執行－以圖搜圖',
@@ -16,7 +16,7 @@ MENU = [
 ORDER = [1, 2, 0]
 GRAPH_LENGTH = 20
 HASH_SIZE = 8
-THRESHOLD=0.75
+THRESHOLD = 0.75
 
 
 def imgRetrieval():
@@ -37,12 +37,21 @@ def imgRetrieval():
             if HashList:
                 InfoPrint(f'正在搜尋圖片\n', '處理中')
                 ans = CountDiff(HashList)
-                if (ans[1] > THRESHOLD):
-                    InfoPrint(f'\n與 {GetFilename(_TempPath)} 最相似的圖片為 "{ans[0]}" 。\n'
-                              + f'相似度為 "{ans[1]*100}%" 。\n', '完成')
+                if (ans[0][1] > THRESHOLD):
+                    InfoPrint(f'\n與 {GetFilename(_TempPath)} 最相似的圖片為 "{ans[0][0]}" 。\n'
+                              + f'相似度為 "{ans[0][1]*100}%" 。\n', '完成')
                     OpenImg(_TempPath)
-                    OpenImg(f'./db/img/{ans[0]}',
-                            f'{ans[0]}:{int(ans[1]*100)}%')
+                    OpenImg(f'./db/img/{ans[0][0]}',
+                            f'{ans[0][0]}:{int(ans[0][1]*100)}%')
+                    cv2.waitKey(0)
+                    cv2.destroyAllWindows()
+                elif ((1-ans[1][1]) > THRESHOLD):
+                    InfoPrint(f'\n與 {GetFilename(_TempPath)} 最相似的圖片為 "{ans[1][0]}" 。\n'
+                              + f'相似度為 "{(1-ans[1][1])*100}%" 。\n', '完成')
+                    InfoPrint(f'這應該是一張經過負片的圖片\n', '提示')
+                    OpenImg(_TempPath)
+                    OpenImg(f'./db/img/{ans[1][0]}',
+                            f'{ans[1][0]}:{int((1-ans[1][1])*100)}%')
                     cv2.waitKey(0)
                     cv2.destroyAllWindows()
                 else:
@@ -83,11 +92,18 @@ def indexCreate():
 
 def CountDiff(HashList):
     data = ReadCSV()
-    ans = ["", 0]
+    max = ["", 0]
+    min = ["", 1]
+    ans = []
+    # list = []
     for x in data:
         temp = CosSimilarity(HashList[0:4], x[1:5])
-        if ans[1] < temp:
-            ans = [x[0], temp]
+        if max[1] < temp:
+            max = [x[0], temp]
+        if min[1] > temp:
+            min = [x[0], temp]
+        # list.append([x[0], temp])
+    ans = [max, min]
     return ans
 
 
